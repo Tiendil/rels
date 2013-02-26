@@ -12,3 +12,9 @@ class EnumWithText(Table):
     name = Column(primary=True)
     value = Column(external=True)
     text = Column()
+
+class DjangoEnum(EnumWithText):
+
+    @classmethod
+    def _choices(cls):
+        return cls._select('name', 'text')

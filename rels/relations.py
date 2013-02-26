@@ -233,3 +233,11 @@ class _TableMetaclass(type):
 
 class Table(object):
     __metaclass__ = _TableMetaclass
+
+    @classmethod
+    def _select(cls, *field_names):
+        result = []
+        for record in cls._records:
+            row = tuple(getattr(record, field_name) for field_name in field_names)
+            result.append(row)
+        return tuple(result)
