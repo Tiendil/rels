@@ -17,4 +17,4 @@ class DjangoEnum(EnumWithText):
 
     @classmethod
     def _choices(cls):
-        return cls._select('name', 'text')
+        return cls._select('value', 'text')

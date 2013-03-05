@@ -40,7 +40,9 @@ class TableIntegerField(models.IntegerField):
             raise ValidationError(u'can not convert %r to %r' % (value, self._relation))
 
     def get_prep_value(self, value):
-        return getattr(value, self._relation_column)
+        if isinstance(value, Record):
+            return getattr(value, self._relation_column)
+        return value
 
 
 add_introspection_rules([], ["^rels\.django_staff\.TableIntegerField"])
