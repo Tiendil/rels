@@ -1,11 +1,40 @@
 # coding: utf-8
 
 from django.db import models
+from django import forms
 from django.core.exceptions import ValidationError
 
 from south.modelsinspector import add_introspection_rules
 
 from rels.relations import Record
+from rels.shortcuts import EnumWithText
+
+class DjangoEnum(EnumWithText):
+
+    @classmethod
+    def _choices(cls):
+        # return cls._select('value', 'text')
+        return [(record, record.text) for record in cls._records]
+
+
+class TableIntegerFormField(forms.TypedChoiceField):
+
+    def __init__(self, **kwargs):
+        self._relation = kwargs.get('relation')
+        self._relation_column = kwargs.get('relation_column')
+
+        if self._relation: del kwargs['relation']
+        if self._relation_column: del kwargs['relation_column']
+
+        super(TableIntegerFormField, self).__init__(**kwargs)
+
+    def to_python(self, value):
+        relation_name, primary_name = value.split('.')
+
+        if relation_name != self._relation.__name__:
+            raise ValidationError(u'wrong relation name "%s", expected "%s"' % (relation_name, self._relation.__name__))
+
+        return getattr(self._relation, primary_name)
 
 
 class TableIntegerField(models.IntegerField):
@@ -29,7 +58,7 @@ class TableIntegerField(models.IntegerField):
 
     def to_python(self, value):
         if isinstance(value, Record):
-            if isinstance(value._table, self._relation):
+            if value._table == self._relation:
                 return value
             else:
                 raise ValidationError(u'record %r is not from %r' % (value, self._relation))
@@ -42,7 +71,55 @@ class TableIntegerField(models.IntegerField):
     def get_prep_value(self, value):
         if isinstance(value, Record):
             return getattr(value, self._relation_column)
+
+        if isinstance(value, basestring) and '.' in value:
+            relation_name, primary_name = value.split('.')
+
+            if relation_name != self._relation.__name__:
+                # TODO: change exception type
+                raise ValidationError(u'wrong relation name "%s", expected "%s"' % (relation_name, self._relation.__name__))
+
+            return getattr(getattr(self._relation, primary_name), self._relation_column)
+
         return value
+
+    def formfield(self, **kwargs):
+        # django 1.4 does not support redifinition of choices field
+        # django 1.5 process form_class argument correctly
+        from django.utils.text import capfirst
+
+        defaults = {'required': not self.blank,
+                    'label': capfirst(self.verbose_name),
+                    'help_text': self.help_text}
+        if self.has_default():
+            if callable(self.default):
+                defaults['initial'] = self.default
+                defaults['show_hidden_initial'] = True
+            else:
+                defaults['initial'] = self.get_default()
+
+        if self.choices:
+            # Fields with choices get special treatment.
+            include_blank = (self.blank or
+                             not (self.has_default() or 'initial' in kwargs))
+            defaults['choices'] = self.get_choices(include_blank=include_blank)
+            defaults['coerce'] = self.to_python
+            if self.null:
+                defaults['empty_value'] = None
+
+            #########
+            defaults['relation'] = self._relation
+            defaults['relation_column'] = self._relation_column
+            form_class = TableIntegerFormField
+            #########
+
+            for k in kwargs.keys():
+                if k not in ('coerce', 'empty_value', 'choices', 'required',
+                             'widget', 'label', 'initial', 'help_text',
+                             'error_messages', 'show_hidden_initial'):
+                    del kwargs[k]
+        defaults.update(kwargs)
+        return form_class(**defaults)
 
 
 add_introspection_rules([], ["^rels\.django_staff\.TableIntegerField"])
