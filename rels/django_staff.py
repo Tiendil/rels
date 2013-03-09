@@ -63,6 +63,14 @@ class TableIntegerField(models.IntegerField):
             else:
                 raise ValidationError(u'record %r is not from %r' % (value, self._relation))
 
+        if isinstance(value, basestring) and '.' in value:
+            relation_name, primary_name = value.split('.')
+
+            if relation_name != self._relation.__name__:
+                raise ValidationError(u'wrong relation name "%s", expected "%s"' % (relation_name, self._relation.__name__))
+
+            return getattr(self._relation, primary_name)
+
         try:
             return getattr(self._relation, '_index_%s' % self._relation_column)[int(value)]
         except ValueError:
@@ -70,7 +78,11 @@ class TableIntegerField(models.IntegerField):
 
     def get_prep_value(self, value):
         if isinstance(value, Record):
-            return getattr(value, self._relation_column)
+            if value._table == self._relation:
+                return getattr(value, self._relation_column)
+            else:
+                # TODO: change exception type
+                raise ValidationError(u'record %r is not from %r' % (value, self._relation))
 
         if isinstance(value, basestring) and '.' in value:
             relation_name, primary_name = value.split('.')
