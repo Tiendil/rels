@@ -29,6 +29,10 @@ class TableIntegerFormField(forms.TypedChoiceField):
         super(TableIntegerFormField, self).__init__(**kwargs)
 
     def to_python(self, value):
+
+        if value == '':
+            return None
+
         relation_name, primary_name = value.split('.')
 
         if relation_name != self._relation.__name__:
@@ -57,6 +61,9 @@ class TableIntegerField(models.IntegerField):
         super(TableIntegerField, self).__init__(*argv, **kwargs)
 
     def to_python(self, value):
+        if value is None:
+            return None
+
         if isinstance(value, Record):
             if value._table == self._relation:
                 return value
