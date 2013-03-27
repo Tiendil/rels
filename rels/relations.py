@@ -241,3 +241,14 @@ class Table(object):
             row = tuple(getattr(record, field_name) for field_name in field_names)
             result.append(row)
         return tuple(result)
+
+    @classmethod
+    def _get_from_name(cls, name):
+        # TODO: write tests
+        relation_name, primary_name = name.split('.')
+
+        if relation_name != cls.__name__:
+            # TODO: make custom exception
+            raise Exception(u'wrong relation name "%s", expected "%s"' % (relation_name, cls.__name__))
+
+        return getattr(cls, primary_name)

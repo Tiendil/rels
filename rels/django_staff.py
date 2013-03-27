@@ -13,32 +13,7 @@ class DjangoEnum(EnumWithText):
 
     @classmethod
     def _choices(cls):
-        # return cls._select('value', 'text')
         return [(record, record.text) for record in cls._records]
-
-
-class TableIntegerFormField(forms.TypedChoiceField):
-
-    def __init__(self, **kwargs):
-        self._relation = kwargs.get('relation')
-        self._relation_column = kwargs.get('relation_column')
-
-        if self._relation: del kwargs['relation']
-        if self._relation_column: del kwargs['relation_column']
-
-        super(TableIntegerFormField, self).__init__(**kwargs)
-
-    def to_python(self, value):
-
-        if value == '':
-            return None
-
-        relation_name, primary_name = value.split('.')
-
-        if relation_name != self._relation.__name__:
-            raise ValidationError(u'wrong relation name "%s", expected "%s"' % (relation_name, self._relation.__name__))
-
-        return getattr(self._relation, primary_name)
 
 
 class TableIntegerField(models.IntegerField):
@@ -127,9 +102,8 @@ class TableIntegerField(models.IntegerField):
                 defaults['empty_value'] = None
 
             #########
-            defaults['relation'] = self._relation
-            defaults['relation_column'] = self._relation_column
-            form_class = TableIntegerFormField
+            defaults['coerce'] = self._relation._get_from_name
+            form_class = forms.TypedChoiceField
             #########
 
             for k in kwargs.keys():
