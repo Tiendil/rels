@@ -1,7 +1,6 @@
 # coding: utf-8
 
 from django.db import models
-from django import forms
 from django.core.exceptions import ValidationError
 
 from south.modelsinspector import add_introspection_rules
@@ -36,6 +35,10 @@ class TableIntegerField(models.IntegerField):
         super(TableIntegerField, self).__init__(*argv, **kwargs)
 
     def to_python(self, value):
+        if self._relation is None:
+            # emulate default behaviour for south
+            return super(TableIntegerField, self).to_python(value)
+
         if value is None:
             return None
 
@@ -59,6 +62,10 @@ class TableIntegerField(models.IntegerField):
             raise ValidationError(u'can not convert %r to %r' % (value, self._relation))
 
     def get_prep_value(self, value):
+        if self._relation is None:
+            # emulate default behaviour for south
+            return super(TableIntegerField, self).get_prep_value(value)
+
         if isinstance(value, Record):
             if value._table == self._relation:
                 return getattr(value, self._relation_column)
@@ -76,43 +83,6 @@ class TableIntegerField(models.IntegerField):
             return getattr(getattr(self._relation, primary_name), self._relation_column)
 
         return value
-
-    def formfield(self, **kwargs):
-        # django 1.4 does not support redifinition of choices field
-        # django 1.5 process form_class argument correctly
-        from django.utils.text import capfirst
-
-        defaults = {'required': not self.blank,
-                    'label': capfirst(self.verbose_name),
-                    'help_text': self.help_text}
-        if self.has_default():
-            if callable(self.default):
-                defaults['initial'] = self.default
-                defaults['show_hidden_initial'] = True
-            else:
-                defaults['initial'] = self.get_default()
-
-        if self.choices:
-            # Fields with choices get special treatment.
-            include_blank = (self.blank or
-                             not (self.has_default() or 'initial' in kwargs))
-            defaults['choices'] = self.get_choices(include_blank=include_blank)
-            defaults['coerce'] = self.to_python
-            if self.null:
-                defaults['empty_value'] = None
-
-            #########
-            defaults['coerce'] = self._relation._get_from_name
-            form_class = forms.TypedChoiceField
-            #########
-
-            for k in kwargs.keys():
-                if k not in ('coerce', 'empty_value', 'choices', 'required',
-                             'widget', 'label', 'initial', 'help_text',
-                             'error_messages', 'show_hidden_initial'):
-                    del kwargs[k]
-        defaults.update(kwargs)
-        return form_class(**defaults)
 
 
 add_introspection_rules([], ["^rels\.django_staff\.TableIntegerField"])
