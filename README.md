@@ -1,4 +1,3 @@
-
 Extended Python enums with relations between them.
 
 See rels.tests for examples.
