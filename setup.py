@@ -10,6 +10,6 @@ setuptools.setup(
     url = 'https://github.com/Tiendil/rels',
     license = 'LICENSE',
     description = 'library for describing data relations in python (Enums, "relational" tables)',
-    long_description = open('README').read(),
+    long_description = open('README.md').read(),
     include_package_data = True # setuptools-git MUST be installed
 )
