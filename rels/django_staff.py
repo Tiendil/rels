@@ -21,7 +21,7 @@ class TableIntegerField(models.IntegerField):
 
     def __init__(self, *argv, **kwargs):
         self._relation = kwargs.get('relation')
-        self._relation_column = kwargs.get('relation_column')
+        self._relation_column = kwargs.get('relation_column', 'value')
 
         if 'choices' not in kwargs and hasattr(self._relation, '_choices'):
             kwargs['choices'] = self._relation._choices()
@@ -29,8 +29,8 @@ class TableIntegerField(models.IntegerField):
         # TODO: check if relation has column with relation_column name
         # TODO: check if column has int type
 
-        if self._relation: del kwargs['relation']
-        if self._relation_column: del kwargs['relation_column']
+        if 'relation' in kwargs: del kwargs['relation']
+        if 'relation_column' in kwargs: del kwargs['relation_column']
 
         super(TableIntegerField, self).__init__(*argv, **kwargs)
 
