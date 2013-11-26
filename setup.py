@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name = 'Rels',
-    version = '0.1.0',
+    version = '0.2.0',
     author = 'Aleksey Yeletsky',
     author_email = 'a.eletsky@gmail.com',
     packages = setuptools.find_packages(),

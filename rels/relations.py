@@ -44,7 +44,7 @@ class Column(object):
         self.name = name
 
         if self.index_name is None:
-            self.index_name = '_index_%s' % self.name
+            self.index_name = 'index_%s' % self.name
 
         if self.primary and not self.unique:
             raise exceptions.PrimaryWithoutUniqueError(self.name)
@@ -126,7 +126,7 @@ class Record(object):
 
     def _set_primary_checks(self, column, ids):
         for id_ in ids:
-            attr_name = '_is_%s' % id_
+            attr_name = 'is_%s' % id_
             if hasattr(self, attr_name):
                 raise exceptions.DuplicateIsPrimaryError(self, column, attr_name, id_)
             setattr(self, attr_name, id_ == getattr(self, column.name))
@@ -147,7 +147,7 @@ class _TableMetaclass(type):
         raw_records = []
 
         for attr_name, attr_value in attributes.items():
-            if attr_name == '_records':
+            if attr_name == 'records':
                 raw_records = attr_value
             elif isinstance(attr_value, Column):
                 attr_value.initialize(name=attr_name)
@@ -171,7 +171,7 @@ class _TableMetaclass(type):
 
         records = [Record(columns, record, table_class) for record in raw_records]
 
-        table_attributes['_records'] = tuple(records)
+        table_attributes['records'] = tuple(records)
         table_attributes['_raw_records'] = tuple(raw_records)
         table_attributes['_columns'] = columns
         table_attributes['_external_index'] = {}
@@ -235,15 +235,15 @@ class Table(object):
     __metaclass__ = _TableMetaclass
 
     @classmethod
-    def _select(cls, *field_names):
+    def select(cls, *field_names):
         result = []
-        for record in cls._records:
+        for record in cls.records:
             row = tuple(getattr(record, field_name) for field_name in field_names)
             result.append(row)
         return tuple(result)
 
     @classmethod
-    def _get_from_name(cls, name):
+    def get_from_name(cls, name):
         # TODO: write tests
         relation_name, primary_name = name.split('.')
 

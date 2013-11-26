@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import absolute_import
 
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -11,8 +12,8 @@ from rels.shortcuts import EnumWithText
 class DjangoEnum(EnumWithText):
 
     @classmethod
-    def _choices(cls):
-        return [(record, record.text) for record in cls._records]
+    def choices(cls):
+        return [(record, record.text) for record in cls.records]
 
 
 class TableIntegerField(models.IntegerField):
@@ -23,8 +24,8 @@ class TableIntegerField(models.IntegerField):
         self._relation = kwargs.get('relation')
         self._relation_column = kwargs.get('relation_column', 'value')
 
-        if 'choices' not in kwargs and hasattr(self._relation, '_choices'):
-            kwargs['choices'] = self._relation._choices()
+        if 'choices' not in kwargs and hasattr(self._relation, 'choices'):
+            kwargs['choices'] = self._relation.choices()
 
         # TODO: check if relation has column with relation_column name
         # TODO: check if column has int type
@@ -57,7 +58,7 @@ class TableIntegerField(models.IntegerField):
             return getattr(self._relation, primary_name)
 
         try:
-            return getattr(self._relation, '_index_%s' % self._relation_column)[int(value)]
+            return getattr(self._relation, 'index_%s' % self._relation_column)[int(value)]
         except ValueError:
             raise ValidationError(u'can not convert %r to %r' % (value, self._relation))
 
