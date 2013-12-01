@@ -86,4 +86,4 @@ class TableIntegerField(models.IntegerField):
         return value
 
 
-add_introspection_rules([], ["^rels\.django_staff\.TableIntegerField"])
+add_introspection_rules([], ["^rels\.django\.TableIntegerField"])
