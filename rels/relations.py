@@ -248,7 +248,6 @@ class Table(object):
         relation_name, primary_name = name.split('.')
 
         if relation_name != cls.__name__:
-            # TODO: make custom exception
-            raise Exception(u'wrong relation name "%s", expected "%s"' % (relation_name, cls.__name__))
+            raise exceptions.WrongRelationNameError(relation_name=relation_name, enum_name=cls.__name__)
 
         return getattr(cls, primary_name)

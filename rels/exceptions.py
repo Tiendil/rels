@@ -71,3 +71,10 @@ class MultipleExternalColumnsError(TableException):
         message = ('there are more then 1 external column: %s' %
                    ', '.join(column.name for column in external_columns))
         super(MultipleExternalColumnsError, self).__init__(message)
+
+
+class WrongRelationNameError(TableException):
+
+    def __init__(self, relation_name, enum_name):
+        message = u'wrong relation name "%s", expected enum name: "%s"' % (relation_name, enum_name)
+        super(WrongRelationNameError, self).__init__(message)
