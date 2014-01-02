@@ -2,22 +2,22 @@
 
 from unittest import TestCase
 
-from rels.relations import Table, Column, Record
+from rels.relations import Relation, Column, Record
 
 from rels import exceptions
 
 from rels.shortcuts import Enum, EnumWithText
 
-class EmptyTable(Table):
+class EmptyRelation(Relation):
     pass
 
 # just to test, that empy records does not break class costruction
-class EmptyRecordsTable(Table):
+class EmptyRecordsRelation(Relation):
     name = Column()
     value = Column()
 
 
-class SimplestTable(Table):
+class SimplestRelation(Relation):
     name = Column()
     value = Column()
 
@@ -25,14 +25,14 @@ class SimplestTable(Table):
                 ('name_b', 2))
 
 
-class SimplestEnum(Table):
+class SimplestEnum(Relation):
     name = Column(primary=True)
     value = Column(external=True)
 
     records = ( ('state_1', 'val_1'),
                  ('state_2', 'val_2') )
 
-class EnumWith2Primaries(Table):
+class EnumWith2Primaries(Relation):
 
     name = Column(primary=True)
     value = Column(primary=True)
@@ -40,7 +40,7 @@ class EnumWith2Primaries(Table):
     records = ( ('STATE_1', 'value_1'),
                  ('STATE_2', 'value_2') )
 
-class IndexesTable(Table):
+class IndexesRelation(Relation):
     name = Column(primary=True)
     val_1 = Column()
     val_2 = Column(unique=False)
@@ -51,20 +51,20 @@ class IndexesTable(Table):
                  ('rec_3', 'val_1_3', 'val_2_2', 'val_3_3'),
                  ('rec_4', 'val_1_4', 'val_2_4', 'val_3_4'),)
 
-class RelationDestinationTable(Table):
+class RelationDestinationRelation(Relation):
     name = Column(primary=True)
     val_1 = Column()
 
     records = ( ('STATE_1', 'value_1'),
                  ('STATE_2', 'value_2') )
 
-class RelationSourceTable(Table):
+class RelationSourceRelation(Relation):
     name = Column(primary=True)
     val_1 = Column()
     rel = Column(related_name='rel_source')
 
-    records = ( ('STATE_1', 'value_1', RelationDestinationTable.STATE_1),
-                 ('STATE_2', 'value_2', RelationDestinationTable.STATE_2) )
+    records = ( ('STATE_1', 'value_1', RelationDestinationRelation.STATE_1),
+                 ('STATE_2', 'value_2', RelationDestinationRelation.STATE_2) )
 
 class ShortcutEnum(Enum):
     records = ( ('ID_1', 1),
@@ -185,44 +185,44 @@ class SimpleRecordTests(TestCase):
         self.assertEqual(r_1, r_1)
 
     def test_repr(self):
-        self.assertEqual(repr(RelationDestinationTable.records[0]),
-                         'RelationDestinationTable.STATE_1')
+        self.assertEqual(repr(RelationDestinationRelation.records[0]),
+                         'RelationDestinationRelation.STATE_1')
 
 
-class SimpleTableTests(TestCase):
+class SimpleRelationTests(TestCase):
 
     def setUp(self):
         pass
 
-    def test_empy_table(self):
-        self.assertEqual(EmptyTable.records, tuple())
+    def test_empy_relation(self):
+        self.assertEqual(EmptyRelation.records, tuple())
 
-    def test_simplest_table(self):
-        self.assertEqual(len(SimplestTable.records), 2)
-        self.assertEqual(SimplestTable._raw_records, (('name_a', 1),
+    def test_simplest_relation(self):
+        self.assertEqual(len(SimplestRelation.records), 2)
+        self.assertEqual(SimplestRelation._raw_records, (('name_a', 1),
                                                       ('name_b', 2)))
 
     def test_uniqueness_restriction(self):
-        def create_bad_table():
-            class SimplestTable(Table):
+        def create_bad_relation():
+            class SimplestRelation(Relation):
                 name = Column()
                 value = Column(unique=True)
 
                 records = (('name_a', 1),
                             ('name_b', 1))
 
-        self.assertRaises(exceptions.DuplicateValueError, create_bad_table)
+        self.assertRaises(exceptions.DuplicateValueError, create_bad_relation)
 
     def test_primary_uniqueness_restriction(self):
-        def create_bad_table():
-            class SimplestTable(Table):
+        def create_bad_relation():
+            class SimplestRelation(Relation):
                 name = Column(primary=True, unique=False)
                 value = Column()
 
                 records = (('name_a', 1),
                             ('name_b', 1))
 
-        self.assertRaises(exceptions.PrimaryWithoutUniqueError, create_bad_table)
+        self.assertRaises(exceptions.PrimaryWithoutUniqueError, create_bad_relation)
 
 
     def test_simplest_enum_attributes(self):
@@ -253,15 +253,15 @@ class SimpleTableTests(TestCase):
         self.assertRaises(exceptions.NotExternalValueError, SimplestEnum, 'bla-bla')
 
     def test_more_then_1_external_columns(self):
-        def create_bad_table():
-            class SimplestTable(Table):
+        def create_bad_relation():
+            class SimplestRelation(Relation):
                 name = Column(external=True)
                 value = Column(external=True)
 
                 records = (('name_a', 'name_c'),
                             ('name_b', 'name_d'))
 
-        self.assertRaises(exceptions.MultipleExternalColumnsError, create_bad_table)
+        self.assertRaises(exceptions.MultipleExternalColumnsError, create_bad_relation)
 
     def test_get_record_by_external_id(self):
         self.assertEqual(SimplestEnum('val_1'), SimplestEnum.state_1)
@@ -283,145 +283,145 @@ class SimpleTableTests(TestCase):
                          (EnumWith2Primaries.STATE_1,
                           EnumWith2Primaries.STATE_2))
 
-    def test_primary_name_duplicate_another_table_attribute(self):
-        def create_bad_table():
-            class SimplestTable(Table):
+    def test_primary_name_duplicate_another_relation_attribute(self):
+        def create_bad_relation():
+            class SimplestRelation(Relation):
                 name = Column(primary=True)
                 value = Column(primary=True)
 
                 records = (('name_a', 'name_c'),
                             ('name_b', 'name_a'))
 
-        self.assertRaises(exceptions.PrimaryDuplicatesTableAttributeError, create_bad_table)
+        self.assertRaises(exceptions.PrimaryDuplicatesRelationAttributeError, create_bad_relation)
 
     def test_primary_name_duplicate_another_record_attribute(self):
-        def create_bad_table():
-            class SimplestTable(Table):
+        def create_bad_relation():
+            class SimplestRelation(Relation):
                 name = Column(primary=True)
                 is_name = Column(primary=True)
 
                 records = (('name_a', 'name_c'),
                            ('name_b', 'name'))
 
-        self.assertRaises(exceptions.DuplicateIsPrimaryError, create_bad_table)
+        self.assertRaises(exceptions.DuplicateIsPrimaryError, create_bad_relation)
 
 
     def test_simplest_indexes(self):
-        self.assertEqual(IndexesTable.index_name,
-                         {'rec_1': IndexesTable.rec_1,
-                          'rec_2': IndexesTable.rec_2,
-                          'rec_3': IndexesTable.rec_3,
-                          'rec_4': IndexesTable.rec_4 })
+        self.assertEqual(IndexesRelation.index_name,
+                         {'rec_1': IndexesRelation.rec_1,
+                          'rec_2': IndexesRelation.rec_2,
+                          'rec_3': IndexesRelation.rec_3,
+                          'rec_4': IndexesRelation.rec_4 })
 
-        self.assertEqual(IndexesTable.index_val_1,
-                         {'val_1_1': IndexesTable.rec_1,
-                          'val_1_2': IndexesTable.rec_2,
-                          'val_1_3': IndexesTable.rec_3,
-                          'val_1_4': IndexesTable.rec_4 })
+        self.assertEqual(IndexesRelation.index_val_1,
+                         {'val_1_1': IndexesRelation.rec_1,
+                          'val_1_2': IndexesRelation.rec_2,
+                          'val_1_3': IndexesRelation.rec_3,
+                          'val_1_4': IndexesRelation.rec_4 })
 
-        self.assertEqual(IndexesTable.index_val_2,
-                         {'val_2_1': (IndexesTable.rec_1,),
-                          'val_2_2': (IndexesTable.rec_2, IndexesTable.rec_3),
-                          'val_2_4': (IndexesTable.rec_4,) })
+        self.assertEqual(IndexesRelation.index_val_2,
+                         {'val_2_1': (IndexesRelation.rec_1,),
+                          'val_2_2': (IndexesRelation.rec_2, IndexesRelation.rec_3),
+                          'val_2_4': (IndexesRelation.rec_4,) })
 
-        self.assertEqual(IndexesTable.val_3_index,
-                         {'val_3_1': IndexesTable.rec_1,
-                          'val_3_2': IndexesTable.rec_2,
-                          'val_3_3': IndexesTable.rec_3,
-                          'val_3_4': IndexesTable.rec_4 })
+        self.assertEqual(IndexesRelation.val_3_index,
+                         {'val_3_1': IndexesRelation.rec_1,
+                          'val_3_2': IndexesRelation.rec_2,
+                          'val_3_3': IndexesRelation.rec_3,
+                          'val_3_4': IndexesRelation.rec_4 })
 
-    def test_index_duplicate_another_table_attribute(self):
-        def create_bad_table():
-            class SimplestTable(Table):
+    def test_index_duplicate_another_relation_attribute(self):
+        def create_bad_relation():
+            class SimplestRelation(Relation):
                 name = Column(primary=True, index_name='name_a')
                 value = Column()
 
                 records = (('name_a', 1),
                             ('name_b', 2))
 
-        self.assertRaises(exceptions.IndexDuplicatesTableAttributeError, create_bad_table)
+        self.assertRaises(exceptions.IndexDuplicatesRelationAttributeError, create_bad_relation)
 
     def test_relations_setup(self):
-        self.assertEqual(RelationSourceTable.STATE_1, RelationDestinationTable.STATE_1.rel_source)
-        self.assertEqual(RelationSourceTable.STATE_2, RelationDestinationTable.STATE_2.rel_source)
-        self.assertEqual(RelationSourceTable.STATE_1.rel, RelationDestinationTable.STATE_1)
-        self.assertEqual(RelationSourceTable.STATE_2.rel, RelationDestinationTable.STATE_2)
-        self.assertEqual(RelationSourceTable.STATE_1, RelationSourceTable.STATE_1.rel.rel_source)
-        self.assertEqual(RelationSourceTable.STATE_2, RelationSourceTable.STATE_2.rel.rel_source)
+        self.assertEqual(RelationSourceRelation.STATE_1, RelationDestinationRelation.STATE_1.rel_source)
+        self.assertEqual(RelationSourceRelation.STATE_2, RelationDestinationRelation.STATE_2.rel_source)
+        self.assertEqual(RelationSourceRelation.STATE_1.rel, RelationDestinationRelation.STATE_1)
+        self.assertEqual(RelationSourceRelation.STATE_2.rel, RelationDestinationRelation.STATE_2)
+        self.assertEqual(RelationSourceRelation.STATE_1, RelationSourceRelation.STATE_1.rel.rel_source)
+        self.assertEqual(RelationSourceRelation.STATE_2, RelationSourceRelation.STATE_2.rel.rel_source)
 
     def test_relations_setup_without_set_method(self):
-        def create_bad_table():
-            class RelationSourceTable(Table):
+        def create_bad_relation():
+            class RelationSourceRelation(Relation):
                 name = Column(primary=True)
                 val_1 = Column()
                 rel = Column(related_name='rel_source')
 
                 records = ( ('STATE_1', 'value_1', 1), # just any type without .set_related_name
-                             ('STATE_2', 'value_2', RelationDestinationTable.STATE_2) )
+                             ('STATE_2', 'value_2', RelationDestinationRelation.STATE_2) )
 
-        self.assertRaises(exceptions.SetRelatedNameError, create_bad_table)
+        self.assertRaises(exceptions.SetRelatedNameError, create_bad_relation)
 
     def test_relations_setup_duplicate_name_error(self):
-        def create_bad_table():
-            class RelationSourceTable(Table):
+        def create_bad_relation():
+            class RelationSourceRelation(Relation):
                 name = Column(primary=True)
                 val_1 = Column()
                 rel = Column(related_name='rel_source')
 
-                # "name" duplicate primary attribute of RelationDestinationTable
-                records = ( ('name', 'value_1', RelationDestinationTable.STATE_1),
-                             ('STATE_2', 'value_2', RelationDestinationTable.STATE_2) )
+                # "name" duplicate primary attribute of RelationDestinationRelation
+                records = ( ('name', 'value_1', RelationDestinationRelation.STATE_1),
+                             ('STATE_2', 'value_2', RelationDestinationRelation.STATE_2) )
 
-        self.assertRaises(exceptions.DuplicateRelatonNameError, create_bad_table)
+        self.assertRaises(exceptions.DuplicateRelatonNameError, create_bad_relation)
 
-    def test_table_inheritance(self):
-        class BaseTable(Table):
+    def test_relation_inheritance(self):
+        class BaseRelation(Relation):
             name = Column(primary=True)
             value = Column()
 
-        class ChildTable(BaseTable):
+        class ChildRelation(BaseRelation):
             records = (('id_1', 1),
                         ('id_2', 2))
 
-        self.assertEqual(ChildTable.id_1.name, 'id_1')
-        self.assertEqual(ChildTable.id_2.name, 'id_2')
+        self.assertEqual(ChildRelation.id_1.name, 'id_1')
+        self.assertEqual(ChildRelation.id_2.name, 'id_2')
 
     def test_column_redifinition(self):
-        class BaseTable(Table):
+        class BaseRelation(Relation):
             name = Column(primary=True)
             value = Column()
 
-        class ChildTable(BaseTable):
+        class ChildRelation(BaseRelation):
             value = Column(unique=False)
             records = (('id_1', 1),
                         ('id_2', 1))
 
-        self.assertEqual(ChildTable.index_value, {1: ChildTable.records})
+        self.assertEqual(ChildRelation.index_value, {1: ChildRelation.records})
 
-    def test_table_inheritance_with_records(self):
-        class BaseTable(Table):
+    def test_relation_inheritance_with_records(self):
+        class BaseRelation(Relation):
             name = Column(primary=True)
             value = Column()
             records = (('id_0', 0),)
 
-        class ChildTable(BaseTable):
+        class ChildRelation(BaseRelation):
             value = Column(unique=False)
             records = (('id_1', 1),
                         ('id_2', 2))
 
-        self.assertEqual(ChildTable.id_0.name, 'id_0')
-        self.assertEqual(ChildTable.id_1.name, 'id_1')
-        self.assertEqual(ChildTable.id_2.name, 'id_2')
+        self.assertEqual(ChildRelation.id_0.name, 'id_0')
+        self.assertEqual(ChildRelation.id_1.name, 'id_1')
+        self.assertEqual(ChildRelation.id_2.name, 'id_2')
 
-        self.assertEqual(len(ChildTable.records), 3)
-        self.assertEqual(ChildTable._raw_records, (('id_0', 0),
+        self.assertEqual(len(ChildRelation.records), 3)
+        self.assertEqual(ChildRelation._raw_records, (('id_0', 0),
                                                    ('id_1', 1),
                                                    ('id_2', 2),))
 
-        self.assertRaises(AttributeError, getattr, BaseTable, 'id_1')
+        self.assertRaises(AttributeError, getattr, BaseRelation, 'id_1')
 
-        self.assertEqual(len(BaseTable.index_name), 1)
-        self.assertEqual(len(ChildTable.index_name), 3)
+        self.assertEqual(len(BaseRelation.index_name), 1)
+        self.assertEqual(len(ChildRelation.index_name), 3)
 
 
     def test_shortcut_enum(self):

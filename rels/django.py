@@ -16,7 +16,7 @@ class DjangoEnum(EnumWithText):
         return [(record, record.text) for record in cls.records]
 
 
-class TableIntegerField(models.IntegerField):
+class RelationIntegerField(models.IntegerField):
 
     __metaclass__ = models.SubfieldBase
 
@@ -33,18 +33,18 @@ class TableIntegerField(models.IntegerField):
         if 'relation' in kwargs: del kwargs['relation']
         if 'relation_column' in kwargs: del kwargs['relation_column']
 
-        super(TableIntegerField, self).__init__(*argv, **kwargs)
+        super(RelationIntegerField, self).__init__(*argv, **kwargs)
 
     def to_python(self, value):
         if self._relation is None:
             # emulate default behaviour for south
-            return super(TableIntegerField, self).to_python(value)
+            return super(RelationIntegerField, self).to_python(value)
 
         if value is None:
             return None
 
         if isinstance(value, Record):
-            if value._table == self._relation:
+            if value._relation == self._relation:
                 return value
             else:
                 raise ValidationError(u'record %r is not from %r' % (value, self._relation))
@@ -65,10 +65,10 @@ class TableIntegerField(models.IntegerField):
     def get_prep_value(self, value):
         if self._relation is None:
             # emulate default behaviour for south
-            return super(TableIntegerField, self).get_prep_value(value)
+            return super(RelationIntegerField, self).get_prep_value(value)
 
         if isinstance(value, Record):
-            if value._table == self._relation:
+            if value._relation == self._relation:
                 return getattr(value, self._relation_column)
             else:
                 # TODO: change exception type
@@ -86,4 +86,4 @@ class TableIntegerField(models.IntegerField):
         return value
 
 
-add_introspection_rules([], ["^rels\.django\.TableIntegerField"])
+add_introspection_rules([], ["^rels\.django\.RelationIntegerField"])

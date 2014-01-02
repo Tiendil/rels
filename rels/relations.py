@@ -21,7 +21,7 @@ class Column(object):
                  index_name=None,
                  related_name=None):
         '''
-        name usually setupped by Table class. In constructor it used in tests
+        name usually setupped by Relation class. In constructor it used in tests
         '''
         self._creation_order = self.__class__._creation_counter
         self.__class__._creation_counter += 1
@@ -100,10 +100,10 @@ class Column(object):
 
 class Record(object):
 
-    def __init__(self, columns, data, table_class=None):
+    def __init__(self, columns, data, relation_class=None):
         self._data = data
         self._primaries = []
-        self._table = table_class
+        self._relation = relation_class
 
         if len(columns) != len(data):
             raise exceptions.ColumnsNumberError(columns, data)
@@ -132,17 +132,17 @@ class Record(object):
             setattr(self, attr_name, id_ == getattr(self, column.name))
 
     def __repr__(self):
-        table_name = self._table.__name__ if self._table is not None else None
+        relation_name = self._relation.__name__ if self._relation is not None else None
         primary_name = self._primaries[0] if self._primaries else None
-        return '%(table)s.%(primary)s' % {'table': table_name,
+        return '%(relation)s.%(primary)s' % {'relation': relation_name,
                                           'primary': primary_name}
 
 
-class _TableMetaclass(type):
+class _RelationMetaclass(type):
 
     @classmethod
-    def process_class_attributes(cls, table_class, bases, attributes):
-        table_attributes = {}
+    def process_class_attributes(cls, relation_class, bases, attributes):
+        relation_attributes = {}
         columns = {}
         raw_records = []
 
@@ -153,7 +153,7 @@ class _TableMetaclass(type):
                 attr_value.initialize(name=attr_name)
                 columns[attr_name] = attr_value
             else:
-                table_attributes[attr_name] = attr_value
+                relation_attributes[attr_name] = attr_value
 
         for base in bases:
             if hasattr(base, '_columns'):
@@ -169,20 +169,20 @@ class _TableMetaclass(type):
         if len(external_columns) > 1:
             raise exceptions.MultipleExternalColumnsError(external_columns)
 
-        records = [Record(columns, record, table_class) for record in raw_records]
+        records = [Record(columns, record, relation_class) for record in raw_records]
 
-        table_attributes['records'] = tuple(records)
-        table_attributes['_raw_records'] = tuple(raw_records)
-        table_attributes['_columns'] = columns
-        table_attributes['_external_index'] = {}
+        relation_attributes['records'] = tuple(records)
+        relation_attributes['_raw_records'] = tuple(raw_records)
+        relation_attributes['_columns'] = columns
+        relation_attributes['_external_index'] = {}
 
-        return columns, table_attributes, records
+        return columns, relation_attributes, records
 
     def __new__(cls, name, bases, attributes):
 
-        table_class = super(_TableMetaclass, cls).__new__(cls, name, bases, {})
+        relation_class = super(_RelationMetaclass, cls).__new__(cls, name, bases, {})
 
-        columns, table_attributes, records = cls.process_class_attributes(table_class,
+        columns, relation_attributes, records = cls.process_class_attributes(relation_class,
                                                                           bases,
                                                                           attributes)
 
@@ -196,9 +196,9 @@ class _TableMetaclass(type):
                 continue
             attributes = column.get_primary_attributes(records)
 
-            duplicates = list(set(attributes.keys()) & set(table_attributes.keys()))
+            duplicates = list(set(attributes.keys()) & set(relation_attributes.keys()))
             if duplicates:
-                raise exceptions.PrimaryDuplicatesTableAttributeError(duplicates, column.name)
+                raise exceptions.PrimaryDuplicatesRelationAttributeError(duplicates, column.name)
 
             for record in records:
                 record._set_primary_checks(column, attributes.keys())
@@ -206,24 +206,24 @@ class _TableMetaclass(type):
             for attr_name, record in attributes.items():
                 record._add_primary(attr_name)
 
-            table_attributes.update(attributes)
+            relation_attributes.update(attributes)
 
         # create indexes
         for column in columns:
             index = column.get_index(records)
 
-            if column.index_name in table_attributes:
-                raise exceptions.IndexDuplicatesTableAttributeError(column.name, column.index_name)
+            if column.index_name in relation_attributes:
+                raise exceptions.IndexDuplicatesRelationAttributeError(column.name, column.index_name)
 
-            table_attributes[column.index_name] = index
+            relation_attributes[column.index_name] = index
 
             if column.external:
-                table_attributes['_external_index'] = index
+                relation_attributes['_external_index'] = index
 
-        for attr_name, attr_value in table_attributes.items():
-            setattr(table_class, attr_name, attr_value)
+        for attr_name, attr_value in relation_attributes.items():
+            setattr(relation_class, attr_name, attr_value)
 
-        return table_class
+        return relation_class
 
     def __call__(self, id_):
         if id_ not in self._external_index:
@@ -231,8 +231,8 @@ class _TableMetaclass(type):
         return self._external_index[id_]
 
 
-class Table(object):
-    __metaclass__ = _TableMetaclass
+class Relation(object):
+    __metaclass__ = _RelationMetaclass
 
     @classmethod
     def select(cls, *field_names):

@@ -1,14 +1,14 @@
 # codings: utf-8
 
-from rels.relations import Column, Table
+from rels.relations import Column, Relation
 
 
-class Enum(Table):
+class Enum(Relation):
     name = Column(primary=True)
     value = Column(external=True)
 
 
-class EnumWithText(Table):
+class EnumWithText(Relation):
     name = Column(primary=True)
     value = Column(external=True)
     text = Column()

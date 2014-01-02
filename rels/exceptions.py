@@ -3,7 +3,7 @@
 class RelsException(Exception): pass
 class ColumnException(RelsException): pass
 class RecordException(RelsException): pass
-class TableException(RelsException): pass
+class RelationException(RelsException): pass
 
 class PrimaryWithoutUniqueError(ColumnException):
     def __init__(self, column_name):
@@ -50,30 +50,30 @@ class DuplicateIsPrimaryError(RecordException):
          'primary_name': primary_name})
         super(DuplicateIsPrimaryError, self).__init__(message)
 
-class PrimaryDuplicatesTableAttributeError(TableException):
+class PrimaryDuplicatesRelationAttributeError(RelationException):
     def __init__(self, column_name, duplicates):
         message = 'Primary names "%(duplicates)r" of column "%(column)s" duplicate another table attributes' % {'duplicates': duplicates, 'column': column_name}
-        super(PrimaryDuplicatesTableAttributeError, self).__init__(message)
+        super(PrimaryDuplicatesRelationAttributeError, self).__init__(message)
 
-class IndexDuplicatesTableAttributeError(TableException):
+class IndexDuplicatesRelationAttributeError(RelationException):
     def __init__(self, column_name, index_name):
         message = ('Index name "%s" of column "%s" duplicates another table attribute'
                    % (index_name, column_name))
-        super(IndexDuplicatesTableAttributeError, self).__init__(message)
+        super(IndexDuplicatesRelationAttributeError, self).__init__(message)
 
-class NotExternalValueError(TableException):
+class NotExternalValueError(RelationException):
     def __init__(self, id_):
         message = u'"%(id)s" is not external value' % {'id': id_}
         super(NotExternalValueError, self).__init__(message)
 
-class MultipleExternalColumnsError(TableException):
+class MultipleExternalColumnsError(RelationException):
     def __init__(self, external_columns):
         message = ('there are more then 1 external column: %s' %
                    ', '.join(column.name for column in external_columns))
         super(MultipleExternalColumnsError, self).__init__(message)
 
 
-class WrongRelationNameError(TableException):
+class WrongRelationNameError(RelationException):
 
     def __init__(self, relation_name, enum_name):
         message = u'wrong relation name "%s", expected enum name: "%s"' % (relation_name, enum_name)

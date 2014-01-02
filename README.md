@@ -21,9 +21,9 @@ Rels позволяет создавать сложные перечисляем
 
 ```python
 
-from rels import Column, Table
+from rels import Column, Relation
 
-class Enum(Table):                # объявляем абстраткное перечисление
+class Enum(Relation):                # объявляем абстраткное перечисление
     name = Column(primary=True)   # имя
     value = Column(external=True) # значение
 
@@ -106,9 +106,9 @@ class EXTENDED_CONSTANTS(SOME_CONSTANTS_WITH_TEXT):  # расширяем наб
 Пример:
 
 ```python
-from rels import Column, Table
+from rels import Column, Relation
 
-class ENUM(Table):
+class ENUM(Relation):
     name = Column(primary=True)
     value = Column(external=True)
     text = Column(unique=False, index_name='by_key')
@@ -139,16 +139,16 @@ ENUM.by_key     # {'key_1': [ENUM.NAME_1], 'key_2': [ENUM.NAME_2, ENUM.NAME_3]}
 Пример:
 
 ```python
-from rels import Column, Table
+from rels import Column, Relation
 
-class DESTINATION_ENUM(Table):
+class DESTINATION_ENUM(Relation):
     name = Column(primary=True)
     val_1 = Column()
 
     records = ( ('STATE_1', 'value_1'),
                 ('STATE_2', 'value_2') )
 
-class SOURCE_ENUM(Table):
+class SOURCE_ENUM(Relation):
     name = Column(primary=True)
     val_1 = Column()
     rel = Column(related_name='rel_source')
@@ -177,7 +177,7 @@ import rels
 # Базовые классы
 rels.Column # класс столбца
 rels.Record # класс элемента перечисления (обычно использовать нет необходимости)
-rels.Table  # базовый клас перечисления
+rels.Relation  # базовый клас перечисления
 
 # Простые перечисления
 rels.Enum         # простое перечисление со столбцами name и value
@@ -200,7 +200,7 @@ rels.exceptions   # модуль с исключениями
 
 - choices — возвращает список `[<элемент перечисления, текс>, …]`
 
-### TableIntegerField
+### RelationIntegerField
 
 Наследник `models.IntegerField`, автоматически конвертирует друг в друга целочисленные значения из базы и элементы перечисления.
 
@@ -211,7 +211,7 @@ rels.exceptions   # модуль с исключениями
 
 ### South
 
-South нормально воспринимает `TableIntegerField`, но в случае указания параметра `default`, понадобится править код миграции, так как south ничего о rels не знает.
+South нормально воспринимает `RelationIntegerField`, но в случае указания параметра `default`, понадобится править код миграции, так как south ничего о rels не знает.
 
 ## Тесты
 
