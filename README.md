@@ -1,5 +1,11 @@
 # Rels — перечисления для Python
 
+## Установка
+
+```
+pip install git+ssh://git@github.com/Tiendil/rels.git@v0.2.0#egg=Rels
+```
+
 ## Введение
 
 Rels позволяет создавать сложные перечисляемые типы, со следующими свойствами:
@@ -23,16 +29,16 @@ Rels позволяет создавать сложные перечисляем
 
 from rels import Column, Relation
 
-class Enum(Relation):                # объявляем абстраткное перечисление
+class Enum(Relation):             # объявляем абстраткное перечисление
     name = Column(primary=True)   # имя
     value = Column(external=True) # значение
 
 
-class EnumWithText(Enum):         # добавляем дополнительный столбец для описания значений
-    text = Column()               # например, для использования в пользовательском интерфейсе
+class EnumWithText(Enum): # добавляем дополнительный столбец для описания значений
+    text = Column()       # например, для использования в пользовательском интерфейсе
 
 
-class SOME_CONSTANTS(Enum):       # объявляем конкретное перечисление
+class SOME_CONSTANTS(Enum):      # объявляем конкретное перечисление
     records = ( ('NAME_1', 1),   # и указываем данные для него
                 ('NAME_2', 2))
 
@@ -58,11 +64,11 @@ SOME_CONSTANTS.NAME_1 != SOME_CONSTANTS_WITH_TEXT.NAME_1  # True
 
 
 # добавление новых элементов перечисления
-class EXTENDED_CONSTANTS(SOME_CONSTANTS_WITH_TEXT):  # расширяем набор данных в перечислении
-    records = ( ('NAME_3', 3, 'constant 3'), )       # добавляем ещё одно значение
+class EXTENDED_CONSTANTS(SOME_CONSTANTS_WITH_TEXT):
+    records = ( ('NAME_3', 3, 'constant 3'), )  # добавляем ещё одно значение
 ```
 
-## Элементы перечисления и параметры столбцов
+## Описание перечисления
 
 При описании столбцов таблицы, можно указать их свойства:
 
@@ -161,7 +167,7 @@ DESTINATION_ENUM.STATE_1.rel_source == SOURCE_ENUM.STATE_1 # True
 DESTINATION_ENUM.STATE_2 == SOURCE_ENUM.STATE_2.rel        # True
 ```
 
-## Взаимодействие с кодом, не использующим rels
+## Взаимодействие со сторонним кодом
 
 Для взаимодействия с кодом, использующим другую реализацию перечислений, можно использовать значения из столбца с установленным в True параметром `external`. Для восстановления объекта элемента перечисления, достаточно передать это значение в конструктор перечисления.
 
