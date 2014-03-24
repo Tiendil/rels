@@ -134,6 +134,15 @@ class SimpleColumnTests(TestCase):
         self.assertRaises(exceptions.SingleTypeError,
                           column_1.check_single_type_restriction, records)
 
+    def test_get_index__no_index(self):
+        column_1 = Column(no_index=True)
+        column_1.initialize('column_1')
+
+        records = ( Record([column_1], ['str_1']),
+                    Record([column_1], ['str_2']))
+
+        self.assertEqual(column_1.get_index(records), None)
+
     def test_get_index_unique(self):
         column_1 = Column()
         column_1.initialize('column_1')

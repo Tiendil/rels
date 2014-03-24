@@ -19,6 +19,7 @@ class Column(object):
                  external=False,
                  single_type=True,
                  index_name=None,
+                 no_index=False,
                  related_name=None):
         '''
         name usually setupped by Relation class. In constructor it used in tests
@@ -32,6 +33,7 @@ class Column(object):
         self.single_type = single_type
         self.name = name
         self.index_name = index_name
+        self.no_index = no_index
         self.related_name = related_name
         self.external = external
 
@@ -82,6 +84,10 @@ class Column(object):
         return { getattr(record, self.name):record for record in records}
 
     def get_index(self, records):
+
+        if self.no_index:
+            return None
+
         index = {}
 
         if self.unique:
