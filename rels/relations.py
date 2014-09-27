@@ -143,6 +143,12 @@ class Record(object):
         return '%(relation)s.%(primary)s' % {'relation': relation_name,
                                           'primary': primary_name}
 
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
+
 
 class _RelationMetaclass(type):
 
@@ -236,6 +242,13 @@ class _RelationMetaclass(type):
             raise exceptions.NotExternalValueError(id_)
         return self._external_index[id_]
 
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
+
+
 
 class Relation(object):
     __metaclass__ = _RelationMetaclass
@@ -257,3 +270,9 @@ class Relation(object):
             raise exceptions.WrongRelationNameError(relation_name=relation_name, enum_name=cls.__name__)
 
         return getattr(cls, primary_name)
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self

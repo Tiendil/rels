@@ -1,4 +1,5 @@
 # coding: utf-8
+import copy
 
 from unittest import TestCase
 
@@ -453,3 +454,15 @@ class SimpleRelationTests(TestCase):
 
         container = {SimplestEnum.state_2: 666}
         self.assertEqual(container[SimplestEnum.state_2], 666)
+
+    def test_copy_relation(self):
+        self.assertEqual(id(SimplestRelation), id(copy.copy(SimplestRelation)))
+
+    def test_deepcopy_relation(self):
+        self.assertEqual(id(SimplestRelation), id(copy.deepcopy(SimplestRelation)))
+
+    def test_copy_record(self):
+        self.assertEqual(id(SimplestRelation.records[0]), id(copy.copy(SimplestRelation.records[0])))
+
+    def test_deepcopy_record(self):
+        self.assertEqual(id(SimplestRelation.records[0]), id(copy.deepcopy(SimplestRelation.records[0])))
