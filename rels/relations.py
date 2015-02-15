@@ -5,6 +5,7 @@
 # TODO: pylint
 # TODO: generate docs
 # TODO: rewrite exceptions texts & rename exception classes
+import random
 
 from rels import exceptions
 
@@ -260,6 +261,10 @@ class Relation(object):
             row = tuple(getattr(record, field_name) for field_name in field_names)
             result.append(row)
         return tuple(result)
+
+    @classmethod
+    def random(cls, exclude=()):
+        return random.choice([record for record in cls.records if record not in exclude])
 
     @classmethod
     def get_from_name(cls, name):
