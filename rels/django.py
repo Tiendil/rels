@@ -4,8 +4,6 @@ from __future__ import absolute_import
 from django.db import models
 from django.core.exceptions import ValidationError
 
-from south.modelsinspector import add_introspection_rules
-
 from rels.relations import Record
 from rels.shortcuts import EnumWithText
 
@@ -85,5 +83,8 @@ class RelationIntegerField(models.IntegerField):
 
         return value
 
-
-add_introspection_rules([], ["^rels\.django\.RelationIntegerField"])
+    def deconstruct(self):
+        name, path, args, kwargs = super(RelationIntegerField, self).deconstruct()
+        if 'choices' in kwargs:
+            del kwargs['choices']
+        return name, path, args, kwargs
