@@ -2,7 +2,9 @@
 from __future__ import absolute_import
 
 from django.db import models
+from django.utils import functional
 from django.core.exceptions import ValidationError
+from django.core import validators as django_validators
 
 from rels.relations import Record
 from rels.shortcuts import EnumWithText
@@ -35,7 +37,7 @@ class RelationIntegerField(models.IntegerField):
 
     def to_python(self, value):
         if self._relation is None:
-            # emulate default behaviour for south
+            # emulate default behaviour for migrations
             return super(RelationIntegerField, self).to_python(value)
 
         if value is None:
@@ -62,7 +64,7 @@ class RelationIntegerField(models.IntegerField):
 
     def get_prep_value(self, value):
         if self._relation is None:
-            # emulate default behaviour for south
+            # emulate default behaviour for migrations
             return super(RelationIntegerField, self).get_prep_value(value)
 
         if isinstance(value, Record):
@@ -88,3 +90,15 @@ class RelationIntegerField(models.IntegerField):
         if 'choices' in kwargs:
             del kwargs['choices']
         return name, path, args, kwargs
+
+
+    @functional.cached_property
+    def validators(self):
+        validators = super(RelationIntegerField, self).validators
+
+        # remove unnecessary validators
+        validators = [validator
+                      for validator in validators
+                      if not isinstance(validator, (django_validators.MinValueValidator, django_validators.MaxValueValidator))]
+
+        return validators
