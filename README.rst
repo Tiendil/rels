@@ -124,6 +124,7 @@ Rels позволяет создавать сложные перечисляем
 Пример:
 
 .. code:: python
+
    from rels import Column, Relation
 
    class ENUM(Relation):
@@ -160,6 +161,7 @@ Rels позволяет создавать сложные перечисляем
 Пример:
 
 .. code:: python
+
    from rels import Column, Relation
 
    class DESTINATION_ENUM(Relation):
@@ -194,6 +196,7 @@ Rels позволяет создавать сложные перечисляем
 Все необходимые объекты вынесены в корень модуля:
 
 .. code:: python
+
    import rels
 
    # Базовые классы
