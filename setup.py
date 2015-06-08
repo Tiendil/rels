@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name='Rels',
-    version='0.2.0',
+    version='0.2.1',
     description='Library for describing data relations in python (Enums, "relational" tables)',
     long_description = open('README.rst').read(),
     url='https://github.com/Tiendil/rels',
