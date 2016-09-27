@@ -72,8 +72,8 @@ class ShortcutEnum(Enum):
                  ('ID_2', 2) )
 
 class ShortcutEnumWithText(EnumWithText):
-    records = ( ('ID_1', 1, u'verbose name 1'),
-                 ('ID_2', 2, u'verbose name 2') )
+    records = ( ('ID_1', 1, 'verbose name 1'),
+                 ('ID_2', 2, 'verbose name 2') )
 
 
 
@@ -441,7 +441,7 @@ class SimpleRelationTests(TestCase):
     def test_shortcur_enum_with_text(self):
         self.assertEqual(ShortcutEnumWithText.ID_1.value, 1)
         self.assertEqual(ShortcutEnumWithText.ID_2.name, 'ID_2')
-        self.assertEqual(ShortcutEnumWithText.ID_2.text, u'verbose name 2')
+        self.assertEqual(ShortcutEnumWithText.ID_2.text, 'verbose name 2')
 
     def test_hash(self):
         container = set()

@@ -63,7 +63,7 @@ class IndexDuplicatesRelationAttributeError(RelationException):
 
 class NotExternalValueError(RelationException):
     def __init__(self, id_):
-        message = u'"%(id)s" is not external value' % {'id': id_}
+        message = '"%(id)s" is not external value' % {'id': id_}
         super(NotExternalValueError, self).__init__(message)
 
 class MultipleExternalColumnsError(RelationException):
@@ -76,5 +76,5 @@ class MultipleExternalColumnsError(RelationException):
 class WrongRelationNameError(RelationException):
 
     def __init__(self, relation_name, enum_name):
-        message = u'wrong relation name "%s", expected enum name: "%s"' % (relation_name, enum_name)
+        message = 'wrong relation name "%s", expected enum name: "%s"' % (relation_name, enum_name)
         super(WrongRelationNameError, self).__init__(message)

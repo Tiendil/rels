@@ -1,5 +1,5 @@
 # coding: utf-8
-from __future__ import absolute_import
+
 
 from django.db import models
 from django.utils import functional
@@ -16,9 +16,7 @@ class DjangoEnum(EnumWithText):
         return [(record, record.text) for record in cls.records]
 
 
-class RelationIntegerField(models.IntegerField):
-
-    __metaclass__ = models.SubfieldBase
+class RelationIntegerField(models.IntegerField, metaclass=models.SubfieldBase):
 
     def __init__(self, *argv, **kwargs):
         self._relation = kwargs.get('relation')
@@ -47,20 +45,20 @@ class RelationIntegerField(models.IntegerField):
             if value._relation == self._relation:
                 return value
             else:
-                raise ValidationError(u'record %r is not from %r' % (value, self._relation))
+                raise ValidationError('record %r is not from %r' % (value, self._relation))
 
-        if isinstance(value, basestring) and '.' in value:
+        if isinstance(value, str) and '.' in value:
             relation_name, primary_name = value.split('.')
 
             if relation_name != self._relation.__name__:
-                raise ValidationError(u'wrong relation name "%s", expected "%s"' % (relation_name, self._relation.__name__))
+                raise ValidationError('wrong relation name "%s", expected "%s"' % (relation_name, self._relation.__name__))
 
             return getattr(self._relation, primary_name)
 
         try:
             return getattr(self._relation, 'index_%s' % self._relation_column)[int(value)]
         except ValueError:
-            raise ValidationError(u'can not convert %r to %r' % (value, self._relation))
+            raise ValidationError('can not convert %r to %r' % (value, self._relation))
 
     def get_prep_value(self, value):
         if self._relation is None:
@@ -72,14 +70,14 @@ class RelationIntegerField(models.IntegerField):
                 return getattr(value, self._relation_column)
             else:
                 # TODO: change exception type
-                raise ValidationError(u'record %r is not from %r' % (value, self._relation))
+                raise ValidationError('record %r is not from %r' % (value, self._relation))
 
-        if isinstance(value, basestring) and '.' in value:
+        if isinstance(value, str) and '.' in value:
             relation_name, primary_name = value.split('.')
 
             if relation_name != self._relation.__name__:
                 # TODO: change exception type
-                raise ValidationError(u'wrong relation name "%s", expected "%s"' % (relation_name, self._relation.__name__))
+                raise ValidationError('wrong relation name "%s", expected "%s"' % (relation_name, self._relation.__name__))
 
             return getattr(getattr(self._relation, primary_name), self._relation_column)
 

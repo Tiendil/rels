@@ -214,7 +214,7 @@ class _RelationMetaclass(type):
                 raise exceptions.PrimaryDuplicatesRelationAttributeError(duplicates, column.name)
 
             for record in records:
-                record._set_primary_checks(column, attributes.keys())
+                record._set_primary_checks(column, list(attributes.keys()))
 
             for attr_name, record in attributes.items():
                 record._add_primary(attr_name)
@@ -251,9 +251,7 @@ class _RelationMetaclass(type):
 
 
 
-class Relation(object):
-    __metaclass__ = _RelationMetaclass
-
+class Relation(object, metaclass=_RelationMetaclass):
     @classmethod
     def select(cls, *field_names):
         result = []
