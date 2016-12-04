@@ -10,6 +10,7 @@ import random
 from rels import exceptions
 
 class Column(object):
+    __slots__ = ('_creation_order', 'primary', 'unique', 'single_type', 'name', 'index_name', 'no_index', 'related_name', 'external', 'primary_checks')
 
     _creation_counter = 0
 
@@ -20,8 +21,9 @@ class Column(object):
                  external=False,
                  single_type=True,
                  index_name=None,
-                 no_index=False,
-                 related_name=None):
+                 no_index=True,
+                 related_name=None,
+                 primary_checks=False):
         '''
         name usually setupped by Relation class. In constructor it used in tests
         '''
@@ -37,6 +39,7 @@ class Column(object):
         self.no_index = no_index
         self.related_name = related_name
         self.external = external
+        self.primary_checks = primary_checks
 
     def __repr__(self):
         repr_str = 'Column(name=%(name)r, unique=%(unique)r, primary=%(primary)r, '\
@@ -86,9 +89,6 @@ class Column(object):
 
     def get_index(self, records):
 
-        if self.no_index:
-            return None
-
         index = {}
 
         if self.unique:
@@ -108,7 +108,6 @@ class Column(object):
 class Record(object):
 
     def __init__(self, columns, data, relation_class=None):
-        self._data = data
         self._primaries = []
         self._relation = relation_class
 
@@ -123,6 +122,12 @@ class Record(object):
                     raise exceptions.SetRelatedNameError(value)
                 value.set_related_name(column.related_name, self)
 
+    def __getattr__(self, name):
+        if name.startswith('is_'):
+            return getattr(self._relation, name[3:]) is self
+
+        return getattr(super(), name)
+
     def _add_primary(self, primary_name):
         self._primaries.append(primary_name)
 
@@ -132,6 +137,9 @@ class Record(object):
         setattr(self, name, record)
 
     def _set_primary_checks(self, column, ids):
+        if not column.primary_checks:
+            return
+
         for id_ in ids:
             attr_name = 'is_%s' % id_
             if hasattr(self, attr_name):
@@ -142,7 +150,7 @@ class Record(object):
         relation_name = self._relation.__name__ if self._relation is not None else None
         primary_name = self._primaries[0] if self._primaries else None
         return '%(relation)s.%(primary)s' % {'relation': relation_name,
-                                          'primary': primary_name}
+                                             'primary': primary_name}
 
     def __copy__(self):
         return self
@@ -223,15 +231,18 @@ class _RelationMetaclass(type):
 
         # create indexes
         for column in columns:
-            index = column.get_index(records)
+            index = None
 
-            if column.index_name in relation_attributes:
-                raise exceptions.IndexDuplicatesRelationAttributeError(column.name, column.index_name)
+            if not column.no_index or column.external:
+                index = column.get_index(records)
 
-            relation_attributes[column.index_name] = index
+                if column.index_name in relation_attributes:
+                    raise exceptions.IndexDuplicatesRelationAttributeError(column.name, column.index_name)
 
-            if column.external:
-                relation_attributes['_external_index'] = index
+                relation_attributes[column.index_name] = index
+
+                if column.external:
+                    relation_attributes['_external_index'] = index
 
         for attr_name, attr_value in relation_attributes.items():
             setattr(relation_class, attr_name, attr_value)
@@ -252,6 +263,7 @@ class _RelationMetaclass(type):
 
 
 class Relation(object, metaclass=_RelationMetaclass):
+
     @classmethod
     def select(cls, *field_names):
         result = []

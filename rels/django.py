@@ -16,7 +16,7 @@ class DjangoEnum(EnumWithText):
         return [(record, record.text) for record in cls.records]
 
 
-class RelationIntegerField(models.IntegerField, metaclass=models.SubfieldBase):
+class RelationIntegerField(models.IntegerField):
 
     def __init__(self, *argv, **kwargs):
         self._relation = kwargs.get('relation')
@@ -82,6 +82,9 @@ class RelationIntegerField(models.IntegerField, metaclass=models.SubfieldBase):
             return getattr(getattr(self._relation, primary_name), self._relation_column)
 
         return value
+
+    def from_db_value(self, value, expression, connection, context):
+        return self.to_python(value)
 
     def deconstruct(self):
         name, path, args, kwargs = super(RelationIntegerField, self).deconstruct()

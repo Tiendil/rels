@@ -4,13 +4,13 @@ from rels.relations import Column, Relation
 
 
 class Enum(Relation):
-    name = Column(primary=True)
-    value = Column(external=True)
+    name = Column(primary=True, no_index=True, primary_checks=True)
+    value = Column(external=True, no_index=True)
 
 
 class EnumWithText(Relation):
-    name = Column(primary=True)
-    value = Column(external=True)
+    name = Column(primary=True, no_index=True, primary_checks=True)
+    value = Column(external=True, no_index=True)
     text = Column()
 
 
