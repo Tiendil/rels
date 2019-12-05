@@ -9,6 +9,7 @@ from django.core import validators as django_validators
 from rels.relations import Record
 from rels.shortcuts import EnumWithText
 
+
 class DjangoEnum(EnumWithText):
 
     @classmethod
@@ -83,7 +84,7 @@ class RelationIntegerField(models.IntegerField):
 
         return value
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         return self.to_python(value)
 
     def deconstruct(self):
@@ -91,7 +92,6 @@ class RelationIntegerField(models.IntegerField):
         if 'choices' in kwargs:
             del kwargs['choices']
         return name, path, args, kwargs
-
 
     @functional.cached_property
     def validators(self):
